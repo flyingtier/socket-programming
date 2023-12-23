@@ -9,7 +9,7 @@ int main(int argc, char* argv[]){
     int sock;
     struct sockaddr_in serv_addr;
     char message[BUFSIZE];
-    int str_len = 0, read_len = 0;
+    int send_len = 0, recv_len = 0, recv_cnt = 0;
     int index = 0;
     
     if (argc > 1) {
@@ -39,9 +39,19 @@ int main(int argc, char* argv[]){
         if (!strcmp(message, "q\n") || !strcmp(message, "Q\n"))
             break;
 
-        write(sock, message, strlen(message));
-        str_len = read(sock, message, BUFSIZE-1);
-        message[str_len] = 0;
+        send_len = write(sock, message, strlen(message));
+
+        // read data from server as sent size
+        recv_len = 0;
+        while(recv_len < send_len) {
+            recv_cnt = read(sock, &message[recv_len], BUFSIZE-1);
+            if (recv_cnt == -1) {
+                err_handling("read() error..!!");
+            }
+            recv_len += recv_cnt;
+        }
+
+        message[recv_len] = 0;
         printf("Message from server: %s", message);
     }
 
